@@ -14,13 +14,13 @@ class Auth:
     A class to manage API authentication.
     """
 
-    def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
+    def require_auth(self, path: str, excluded_paths: list) -> bool:
         """
         Determines if authentication is required for a given path.
 
         Args:
             path (str): The path to check.
-            excluded_paths (List[str]): A list of paths that do not
+            excluded_paths (list): A list of paths that do not
             require authentication.
 
         Returns:
@@ -32,13 +32,22 @@ class Auth:
         if not excluded_paths:
             return True
 
-        # Normalize the path to ensure it ends with a slash for comparison
+        # Ensure the path ends with a slash for consistency
         path = path if path.endswith('/') else f"{path}/"
 
-        # Check if the path is in the excluded paths
         for excluded_path in excluded_paths:
-            if excluded_path == path:
-                return False
+            # Handle wildcard (*) at the end of an excluded path
+            if excluded_path.endswith("*"):
+                prefix = excluded_path[:-1]
+                if path.startswith(prefix):
+                    return False
+            else:
+                if excluded_path.endswith('/'):
+                    excluded_path = excluded_path
+                else:
+                    f"{excluded_path}/"
+                if path == excluded_path:
+                    return False
 
         return True
 
