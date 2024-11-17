@@ -20,8 +20,8 @@ class Auth:
 
         Args:
             path (str): The path to check.
-            excluded_paths (List[str]): A list of paths that do
-            not require authentication.
+            excluded_paths (List[str]): A list of paths that do not
+            require authentication.
 
         Returns:
             bool: True if authentication is required, False otherwise.
@@ -32,10 +32,12 @@ class Auth:
         if not excluded_paths:
             return True
 
-        normalized_path = path if path.endswith('/') else f"{path}/"
+        # Normalize the path to ensure it ends with a slash for comparison
+        path = path if path.endswith('/') else f"{path}/"
 
+        # Check if the path is in the excluded paths
         for excluded_path in excluded_paths:
-            if excluded_path == normalized_path:
+            if excluded_path == path:
                 return False
 
         return True
