@@ -20,8 +20,8 @@ class Auth:
 
         Args:
             path (str): The path to check.
-            excluded_paths (List[str]): A list of paths that do not
-            require authentication.
+            excluded_paths (List[str]): A list of paths that do
+            not require authentication.
 
         Returns:
             bool: True if authentication is required, False otherwise.
@@ -32,13 +32,13 @@ class Auth:
         if not excluded_paths:
             return True
 
-        # Ensure the path ends with a slash for comparison consistency
         normalized_path = path if path.endswith('/') else f"{path}/"
 
-        # Check if the normalized path is in the excluded_paths list
         for excluded_path in excluded_paths:
             if excluded_path == normalized_path:
                 return False
+
+        return True
 
     def authorization_header(self, request=None) -> str:
         """
@@ -48,9 +48,13 @@ class Auth:
             request (Request): The Flask request object.
 
         Returns:
-            str: None for now, indicating no authorization header is handled.
+            str: The Authorization header value if present, otherwise None.
         """
-        return None
+        if request is None:
+            return None
+
+        # Retrieve the Authorization header from the request
+        return request.headers.get('Authorization')
 
     def current_user(self, request=None) -> User:
         """
