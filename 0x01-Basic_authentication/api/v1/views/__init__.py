@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-""" DocDocDocDocDocDoc
+"""
+   Initialize the app_views Blueprint and import API routes.
 """
 from flask import Blueprint
 
