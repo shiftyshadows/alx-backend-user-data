@@ -42,6 +42,27 @@ def unauthorized_error(error: Any) -> Tuple[dict, int]:
     return jsonify({"error": "Unauthorized"}), 401
 
 
+@app.errorhandler(403)
+def forbidden_error_handler(error: Exception) -> Tuple[dict, int]:
+    """
+    Error handler for 403 Forbidden HTTP status code.
+
+    Purpose:
+        Handles cases where a user is authenticated but lacks
+        the necessary permissions to access a resource.
+
+    Args:
+        error (Exception): The HTTP exception that triggered the handler
+            (e.g., from `abort(403)`).
+
+    Returns:
+        Tuple[dict, int]:
+            - A dictionary containing the error message.
+            - An HTTP status code of 403 (indicating Forbidden).
+    """
+    return jsonify({"error": "Forbidden"}), 403
+
+
 if __name__ == "__main__":
     host = getenv("API_HOST", "0.0.0.0")
     port = getenv("API_PORT", "5000")
