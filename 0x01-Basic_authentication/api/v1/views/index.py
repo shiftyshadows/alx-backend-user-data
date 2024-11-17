@@ -2,7 +2,7 @@
 """ Module of Index views
 """
 
-from flask import jsonify, abort, Response
+from flask import jsonify, abort
 from api.v1.views import app_views
 
 
@@ -30,7 +30,7 @@ def stats() -> str:
 
 
 @app_views.route('/unauthorized', methods=['GET'], strict_slashes=False)
-def unauthorized_access() -> Response:
+def unauthorized_access() -> None:
     """
     Endpoint that raises a 401 Unauthorized error.
 
