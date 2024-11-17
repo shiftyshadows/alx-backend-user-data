@@ -24,9 +24,21 @@ class Auth:
             require authentication.
 
         Returns:
-            bool: False for now, indicating no authentication is required.
+            bool: True if authentication is required, False otherwise.
         """
-        return False
+        if path is None:
+            return True
+
+        if not excluded_paths:
+            return True
+
+        # Ensure the path ends with a slash for comparison consistency
+        normalized_path = path if path.endswith('/') else f"{path}/"
+
+        # Check if the normalized path is in the excluded_paths list
+        for excluded_path in excluded_paths:
+            if excluded_path == normalized_path:
+                return False
 
     def authorization_header(self, request=None) -> str:
         """
