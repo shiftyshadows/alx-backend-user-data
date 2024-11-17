@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+"""
+   This module defines the class: Auth
+"""
 from typing import List, TypeVar
 from flask import request
 
