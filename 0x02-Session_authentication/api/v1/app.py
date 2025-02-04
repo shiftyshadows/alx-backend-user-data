@@ -6,9 +6,8 @@ from os import getenv
 from api.v1.views import app_views
 from api.v1.auth.auth import Auth
 from flask import Flask, jsonify, abort, request
-from flask_cors import (CORS, cross_origin)
+from flask_cors import CORS
 from typing import Any, Tuple
-
 
 app = Flask(__name__)
 app.register_blueprint(app_views)
@@ -17,18 +16,23 @@ CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
 # Initialize the auth variable
 auth = None
 
-if getenv("AUTH_TYPE") == "auth":
+AUTH_TYPE = getenv("AUTH_TYPE")
+
+if AUTH_TYPE == "auth":
     auth = Auth()
-elif getenv("AUTH_TYPE") == "basic_auth":
+elif AUTH_TYPE == "basic_auth":
     from api.v1.auth.basic_auth import BasicAuth
     auth = BasicAuth()
+elif AUTH_TYPE == "session_auth":
+    from api.v1.auth.session_auth import SessionAuth
+    auth = SessionAuth()
 
 
 @app.before_request
 def before_request_handler():
     """
-       Filters requests to secure the API based on authentication
-       requirements.
+    Filters requests to secure the API based on authentication
+    requirements.
     """
     # If no authentication instance, do nothing
     if auth is None:
@@ -45,14 +49,15 @@ def before_request_handler():
     if not auth.require_auth(request.path, excluded_paths):
         return
 
-    # Check for Authorization header
-    if auth.authorization_header(request) is None:
+    # Check for Authorization header or session authentication
+    if auth.authorization_header(request) is None and \
+       getattr(auth, "session_cookie", lambda r: None)(request) is None:
         abort(401)
 
     # Check for a valid current user
-    if auth.current_user(request) is None:
-        abort(403)
     request.current_user = auth.current_user(request)
+    if request.current_user is None:
+        abort(403)
 
 
 @app.errorhandler(404)
