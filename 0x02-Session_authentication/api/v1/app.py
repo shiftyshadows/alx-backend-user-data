@@ -3,14 +3,15 @@
 Route module for the API
 """
 from os import getenv
-from api.v1.views import app_views
-from api.v1.auth.auth import Auth
-from flask import Flask, jsonify, abort, request
+from flask import Flask, jsonify, request, abort
 from flask_cors import CORS
-from typing import Any, Tuple
+from api.v1.views import app_views  # ✅ Import app_views
+from api.v1.auth.auth import Auth
+from api.v1.auth.session_auth import SessionAuth
+from api.v1.auth.session_exp_auth import SessionExpAuth  # ✅ Import SessionExpAuth
 
 app = Flask(__name__)
-app.register_blueprint(app_views)
+app.register_blueprint(app_views)  # ✅ Register app_views
 CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
 
 # Initialize the auth variable
@@ -24,8 +25,9 @@ elif AUTH_TYPE == "basic_auth":
     from api.v1.auth.basic_auth import BasicAuth
     auth = BasicAuth()
 elif AUTH_TYPE == "session_auth":
-    from api.v1.auth.session_auth import SessionAuth
     auth = SessionAuth()
+elif AUTH_TYPE == "session_exp_auth":
+    auth = SessionExpAuth()  # ✅ Use session authentication with expiration
 
 
 @app.before_request
@@ -37,79 +39,41 @@ def before_request_handler():
     if auth is None:
         return
 
-    # Define the list of paths that do not require authentication
     excluded_paths = [
         '/api/v1/status/',
         '/api/v1/unauthorized/',
         '/api/v1/forbidden/',
-        '/api/v1/auth_session/login/',  # New login path exclusion
+        '/api/v1/auth_session/login/',  # ✅ Exclude session login
     ]
 
-    # Check if the path requires authentication
     if not auth.require_auth(request.path, excluded_paths):
-        return
+        return  # Allow access
 
-    # Ensure either Authorization header or session cookie is present
     if auth.authorization_header(request) is None and \
        auth.session_cookie(request) is None:
         abort(401)
 
-    # Retrieve the current user and set it to request.current_user
     request.current_user = auth.current_user(request)
     if request.current_user is None:
         abort(403)
 
 
 @app.errorhandler(404)
-def not_found_error(error: Any) -> Tuple[Any, int]:
-    """
-    Handles 404 Not Found errors.
-
-    Args:
-        error (Any): The error object captured by Flask.
-
-    Returns:
-        Tuple[Any, int]: JSON response and status code.
-    """
+def not_found_error(error):
     return jsonify({"error": "Not found"}), 404
 
 
 @app.errorhandler(401)
-def unauthorized_error(error: Any) -> Tuple[dict, int]:
-    """
-    Handles 401 Unauthorized errors.
-
-    Args:
-        error (Any): The error object captured by Flask.
-
-    Returns:
-        Tuple[dict, int]: JSON response and status code.
-    """
+def unauthorized_error(error):
     return jsonify({"error": "Unauthorized"}), 401
 
 
 @app.errorhandler(403)
-def forbidden_error_handler(error: Exception) -> Tuple[dict, int]:
-    """
-    Error handler for 403 Forbidden HTTP status code.
-
-    Purpose:
-        Handles cases where a user is authenticated but lacks
-        the necessary permissions to access a resource.
-
-    Args:
-        error (Exception): The HTTP exception that triggered the handler
-            (e.g., from `abort(403)`).
-
-    Returns:
-        Tuple[dict, int]:
-            - A dictionary containing the error message.
-            - An HTTP status code of 403 (indicating Forbidden).
-    """
+def forbidden_error(error):
     return jsonify({"error": "Forbidden"}), 403
 
 
 if __name__ == "__main__":
     host = getenv("API_HOST", "0.0.0.0")
     port = getenv("API_PORT", "5000")
-    app.run(host=host, port=port)
+    app.run(host=host, port=port, debug=True)
