@@ -49,7 +49,8 @@ class SessionExpAuth(SessionAuth):
             session_id (str): The session ID.
 
         Returns:
-            str: The associated User ID or None if session is expired or invalid.
+            str: The associated User ID or None if session is expired or
+            invalid.
         """
         if session_id is None:
             return None
