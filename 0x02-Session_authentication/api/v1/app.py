@@ -27,27 +27,33 @@ elif getenv("AUTH_TYPE") == "basic_auth":
 @app.before_request
 def before_request_handler():
     """
-    Handler for filtering requests and authenticating users.
+       Filters requests to secure the API based on authentication
+       requirements.
     """
+    # If no authentication instance, do nothing
     if auth is None:
         return
 
+    # Define the list of paths that do not require authentication
     excluded_paths = [
         '/api/v1/status/',
         '/api/v1/unauthorized/',
-        '/api/v1/forbidden/'
+        '/api/v1/forbidden/',
     ]
 
+    # Check if the path requires authentication
     if not auth.require_auth(request.path, excluded_paths):
         return
 
+    # Check for Authorization header
     if auth.authorization_header(request) is None:
         abort(401)
 
+    # Check for a valid current user
+    if auth.current_user(request) is None:
+        abort(403)
     request.current_user = auth.current_user(request)
 
-    if request.current_user is None:
-        abort(403)
 
 @app.errorhandler(404)
 def not_found_error(error: Any) -> Tuple[Any, int]:
