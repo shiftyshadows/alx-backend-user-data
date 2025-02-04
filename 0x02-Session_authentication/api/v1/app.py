@@ -8,7 +8,8 @@ from flask_cors import CORS
 from api.v1.views import app_views  # ✅ Import app_views
 from api.v1.auth.auth import Auth
 from api.v1.auth.session_auth import SessionAuth
-from api.v1.auth.session_exp_auth import SessionExpAuth  # ✅ Import SessionExpAuth
+from api.v1.auth.session_exp_auth import SessionExpAuth
+from api.v1.auth.session_db_auth import SessionDBAuth  # ✅ Import SessionDBAuth
 
 app = Flask(__name__)
 app.register_blueprint(app_views)  # ✅ Register app_views
@@ -27,7 +28,9 @@ elif AUTH_TYPE == "basic_auth":
 elif AUTH_TYPE == "session_auth":
     auth = SessionAuth()
 elif AUTH_TYPE == "session_exp_auth":
-    auth = SessionExpAuth()  # ✅ Use session authentication with expiration
+    auth = SessionExpAuth()
+elif AUTH_TYPE == "session_db_auth":
+    auth = SessionDBAuth()  # ✅ Use session authentication with database storage
 
 
 @app.before_request
