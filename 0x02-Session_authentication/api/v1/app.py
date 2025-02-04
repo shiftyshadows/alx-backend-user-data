@@ -34,7 +34,6 @@ def before_request_handler():
     Filters requests to secure the API based on authentication
     requirements.
     """
-    # If no authentication instance, do nothing
     if auth is None:
         return
 
@@ -43,18 +42,19 @@ def before_request_handler():
         '/api/v1/status/',
         '/api/v1/unauthorized/',
         '/api/v1/forbidden/',
+        '/api/v1/auth_session/login/',  # New login path exclusion
     ]
 
     # Check if the path requires authentication
     if not auth.require_auth(request.path, excluded_paths):
         return
 
-    # Check for Authorization header or session authentication
+    # Ensure either Authorization header or session cookie is present
     if auth.authorization_header(request) is None and \
-       getattr(auth, "session_cookie", lambda r: None)(request) is None:
+       auth.session_cookie(request) is None:
         abort(401)
 
-    # Check for a valid current user
+    # Retrieve the current user and set it to request.current_user
     request.current_user = auth.current_user(request)
     if request.current_user is None:
         abort(403)
