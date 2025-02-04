@@ -4,7 +4,7 @@
 """
 from typing import List, TypeVar
 from flask import request
-
+from os import getenv
 # Create a generic User type for typing
 User = TypeVar('User')
 
@@ -78,3 +78,25 @@ class Auth:
             User: None for now, indicating no user management is implemented.
         """
         return None
+
+    def session_cookie(self, request=None):
+        """
+        Retrieves the session cookie value from the request.
+
+        Args:
+            request: Flask request object.
+
+        Returns:
+            str: The session ID stored in the cookie, or None if not found.
+        """
+        if request is None:
+            return None
+
+        # Get the session cookie name from environment variable
+        session_name = getenv("SESSION_NAME")
+
+        if session_name is None:
+            return None
+
+        # Return the session ID from the request cookies
+        return request.cookies.get(session_name)
